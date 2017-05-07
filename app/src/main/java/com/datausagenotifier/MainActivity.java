@@ -1,13 +1,13 @@
 package com.datausagenotifier;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,14 +18,33 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        Button button = (Button) findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(MainActivity.this, DataUsageMonitorService.class);
+                Button button = (Button) view;
+                if (DataUsageMonitorService.IS_STOPPED) {
+                    startService(intent);
+                    button.setText(R.string.stop_service);
+                } else {
+                    stopService(intent);
+                    button.setText(R.string.start_service);
+                }
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Button button = (Button) findViewById(R.id.button);
+        if (DataUsageMonitorService.IS_STOPPED) {
+            button.setText(R.string.start_service);
+        } else {
+            button.setText(R.string.stop_service);
+        }
     }
 
     @Override
@@ -43,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_exit) {
+            finish();
             return true;
         }
 
