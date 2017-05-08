@@ -1,6 +1,5 @@
 package com.datausagenotifier;
 
-import android.app.AlertDialog;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -21,9 +20,10 @@ public class DataUsageMonitorService extends IntentService {
     public volatile static boolean IS_STOPPED = true;
     private volatile static Thread SLEEPING_THREAD;
 
+    public static final int POLLING_INTERVAL_MS = 8000;
+
     private static final String TAG = "DataUsageMonitorService";
     private static final int NOTIFICATION_ID = 1;
-    private static final int POLLING_INTERVAL_MS = 8000;
 
     private Handler uiThreadHandler;
     private Builder notificationBuilder;
@@ -54,8 +54,10 @@ public class DataUsageMonitorService extends IntentService {
                 .setContentIntent(pIntent_none)
                 .setCategory(Notification.CATEGORY_STATUS)
 
-                .setPriority(Notification.PRIORITY_HIGH) // heads-up notification
-                .setDefaults(Notification.DEFAULT_VIBRATE);
+                //.setPriority(Notification.PRIORITY_HIGH) // heads-up notification
+                //.setDefaults(Notification.DEFAULT_SOUND)
+        ;
+        // TODO: make notifications InboxStyle
 
         Notification notification = notificationBuilder.build();
         startForeground(NOTIFICATION_ID, notification);
@@ -96,24 +98,27 @@ public class DataUsageMonitorService extends IntentService {
 
         long threadId = Thread.currentThread().getId();
         int i=0;
-        while(!IS_STOPPED && i++ < 10) {
+        while(!IS_STOPPED && i++ < 100) {
             Log.v(TAG, "called handleActionStart (" + threadId + ") [i=" + i + "]");
 
             String msg;
             try {
                 msg = TrafficStatsHelper.getTrafficStatsUpdate(this);
             } catch (UnsupportedDeviceException e) {
-                alert("Traffic stats not supported on this device. Stopping service.");
+                postToast("Unsupported device:\nYour device does not support traffic stats monitoring.");
                 stopSelf();
                 return;
             }
 
+            // TODO: if msg == null, grey out the notification or something similar
             if (msg != null) {
                 Notification notification = notificationBuilder
                         .setContentText(msg)
                         .setWhen(System.currentTimeMillis())
                         .build();
                 notificationManager.notify(NOTIFICATION_ID, notification);
+
+                postToast(msg);
             }
 
             staticLockAndSleep();
@@ -127,16 +132,10 @@ public class DataUsageMonitorService extends IntentService {
         uiThreadHandler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(DataUsageMonitorService.this, msg, Toast.LENGTH_SHORT).show();
+                // TODO: position toast at top of screen; make font small
+                Toast.makeText(DataUsageMonitorService.this, msg, Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    private void alert(final String msg) {
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Unsupported device");
-        alert.setMessage("Your device does not support traffic stat monitoring.");
-        alert.show();
     }
 
     @Override
