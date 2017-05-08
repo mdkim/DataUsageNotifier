@@ -8,8 +8,11 @@ import android.content.Intent;
 import android.os.Handler;
 import android.support.v7.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
+import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.datausagenotifier.model.TrafficStatsUpdate;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -44,10 +47,10 @@ public class DataUsageMonitorService extends IntentService {
         PendingIntent pIntent_none = PendingIntent.getActivity(this, 0, new Intent(), 0);
         notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.temp1)
-                .setContentTitle("content title CONTENT TITLE CONTE")
-                .setContentText("content text CONTENT TEXT CONTENT")
-                .setSubText("subtext")
-                .setContentInfo("content info CONTENT INFO CONTENT")
+                //.setContentTitle("content title")
+                //.setContentText("content text")
+                //.setSubText("subtext")
+                //.setContentInfo("content info")
                 .setShowWhen(true)
                 .setWhen(System.currentTimeMillis())
                 .addAction(R.drawable.temp1, "Stop service", pIntent_stopSelf)
@@ -57,7 +60,6 @@ public class DataUsageMonitorService extends IntentService {
                 //.setPriority(Notification.PRIORITY_HIGH) // heads-up notification
                 //.setDefaults(Notification.DEFAULT_SOUND)
         ;
-        // TODO: make notifications InboxStyle
 
         Notification notification = notificationBuilder.build();
         startForeground(NOTIFICATION_ID, notification);
@@ -101,34 +103,51 @@ public class DataUsageMonitorService extends IntentService {
         while(!IS_STOPPED && i++ < 100) {
             Log.v(TAG, "called handleActionStart (" + threadId + ") [i=" + i + "]");
 
-            String msg;
+            TrafficStatsUpdate stats;
             try {
-                msg = TrafficStatsHelper.getTrafficStatsUpdate(this);
+                stats = TrafficStatsHelper.getTestStats(this); //getTrafficStatsUpdate(this);
             } catch (UnsupportedDeviceException e) {
                 postToast("Unsupported device:\nYour device does not support traffic stats monitoring.");
                 stopSelf();
                 return;
             }
 
-            // TODO: if msg == null, grey out the notification or something similar
-            if (msg != null) {
+            if (stats == null) {
                 Notification notification = notificationBuilder
-                        .setContentText(msg)
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                                .setBigContentTitle("(No activity)")
+                                .bigText(""))
+                        .setWhen(System.currentTimeMillis())
+                        .build();
+                notificationManager.notify(NOTIFICATION_ID, notification);
+            } if (stats != null) {
+                SpannableStringBuilder ssb = stats.formatSpannable();
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("com.datausagenotifier.extras.ssb", ssb);
+                intent.setAction("update");
+                PendingIntent pIntent_main = PendingIntent.getActivity(this, 0, intent, 0);
+                String contentTitle = stats.getContentTitle().toString();
+                Notification notification = notificationBuilder
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                                .setBigContentTitle(contentTitle)
+                                //.setSummaryText("Summary Text")
+                                .bigText(ssb))
+                        .setContentIntent(pIntent_main)
                         .setWhen(System.currentTimeMillis())
                         .build();
                 notificationManager.notify(NOTIFICATION_ID, notification);
 
-                postToast(msg);
+                postToast(contentTitle);
+                Log.v(TAG, ssb.toString());
             }
 
             staticLockAndSleep();
         }
 
         Log.v(TAG, "exiting handleActionStart (" + threadId + ")");
-
     }
 
-    private void postToast(final String msg) {
+    private void postToast(final CharSequence msg) {
         uiThreadHandler.post(new Runnable() {
             @Override
             public void run() {

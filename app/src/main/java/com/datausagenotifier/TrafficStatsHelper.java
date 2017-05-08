@@ -5,9 +5,11 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.TrafficStats;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.util.LongSparseArray;
+
+import com.datausagenotifier.model.TrafficStatsUid;
+import com.datausagenotifier.model.TrafficStatsUpdate;
 
 import java.util.List;
 
@@ -21,7 +23,7 @@ public class TrafficStatsHelper {
     private static LongSparseArray<Long> UID_TX_MAP = new LongSparseArray<>();
 
     // returns null if no updated activity
-    public static String getTrafficStatsUpdate(Context ctx) throws UnsupportedDeviceException {
+    public static TrafficStatsUpdate getTrafficStatsUpdate(Context ctx) throws UnsupportedDeviceException {
         long starttime = System.currentTimeMillis();
 
         // quick check of total data usage
@@ -36,7 +38,7 @@ public class TrafficStatsHelper {
         TOTAL_RX_BYTES = totalRxBytes;
         TOTAL_TX_BYTES = totalTxBytes;
 
-        StringBuilder msg = new StringBuilder();
+        TrafficStatsUpdate stats = new TrafficStatsUpdate();
         ActivityManager activityManager = (ActivityManager) ctx.getSystemService(Context.ACTIVITY_SERVICE);
         //List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
         List<ActivityManager.RunningServiceInfo> rsiList = activityManager.getRunningServices(Integer.MAX_VALUE);
@@ -45,7 +47,7 @@ public class TrafficStatsHelper {
         for (ActivityManager.RunningServiceInfo rsi : rsiList) {
             int uid = rsi.uid;
             //String processName = rsi.process;
-            String serviceName = parseServiceName(rsi.service.getClassName());
+            String serviceClass = rsi.service.getClassName();
 
             long uidRxBytes = TrafficStats.getUidRxBytes(uid);
             long uidTxBytes = TrafficStats.getUidTxBytes(uid);
@@ -55,53 +57,40 @@ public class TrafficStatsHelper {
             boolean isTx = (uidTxBytes > prev_uidTxBytes);
             if (!(isRx || isTx)) continue;
 
-            msg.append(serviceName);
+            TrafficStatsUid statsUid = new TrafficStatsUid(ctx, serviceClass, uid);
             if (isRx) {
-                String rxRate = formatBytesPerSec(ctx, (uidRxBytes - prev_uidRxBytes));
-                msg.append(" Received ").append(rxRate).append("/s");
+                statsUid.setRxBytes((uidRxBytes - prev_uidRxBytes));
                 //rxCount++;
             }
             if (isTx) {
-                String txRate = formatBytesPerSec(ctx, (uidTxBytes - prev_uidTxBytes));
-                msg.append(" Sent ").append(txRate).append("/s");
+                statsUid.setTxBytes((uidTxBytes - prev_uidTxBytes));
                 //txCount++;
             }
-            msg.append("\n");
+            stats.addStatsUid(statsUid);
             rxtxCount++;
 
             UID_RX_MAP.put(uid, uidRxBytes);
             UID_TX_MAP.put(uid, uidTxBytes);
         }
 
-        if (rxtxCount == 0) {
-            msg.append("(Unknown processes)\n");
-        }
-
-        // TODO: send msg as array for inboxstyle;
-        // set the notification title to this:
-        msg.append(rxtxCount).append("+ apps sent/received data");
+        stats.setRxTxCount(rxtxCount);
 
         long dur = System.currentTimeMillis() - starttime;
         Log.v(TAG, "getTrafficStatsUpdate() dur=" + dur + " ms");
 
-        String msg_s = msg.toString();
-        Log.v(TAG, "---\n" + msg_s + "\n===\n");
-        return msg_s;
+        return stats;
     }
 
-    private static String formatBytesPerSec(Context ctx, long bytes) {
-        float bytesPerSec_float = (bytes * 1000) / DataUsageMonitorService.POLLING_INTERVAL_MS;
-        long bytesPerSec = (long) bytesPerSec_float;
-        String msg = Formatter.formatShortFileSize(ctx, bytesPerSec);
-        return msg;
-    }
-
-    private static String parseServiceName(String className) {
-        int pos = className.lastIndexOf('.');
-        if (pos < 0 || pos == className.length() - 1) return className;
-        //String serviceName = className.substring(pos+1, className.length());
-        //return serviceName;
-        return className;
+    public static TrafficStatsUpdate getTestStats(Context ctx) throws UnsupportedDeviceException {
+        TrafficStatsUpdate stats = new TrafficStatsUpdate();
+        for (int i=1; i < 10; i++) {
+            TrafficStatsUid statsUid = new TrafficStatsUid(ctx, "com.google.android.location.places.service.PlaceDetectionAsyncService", i);
+            statsUid.setRxBytes(200_000 * i);
+            statsUid.setTxBytes(200_000 * i);
+            stats.addStatsUid(statsUid);
+        }
+        stats.setRxTxCount(1);
+        return stats;
     }
 
     // for reference: attributes of RunningServiceInfo and ApplicationInfo;

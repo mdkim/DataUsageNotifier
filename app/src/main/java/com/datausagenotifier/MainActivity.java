@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
 
         Button button = (Button) findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, DataUsageMonitorService.class);
                 Button button = (Button) view;
@@ -36,6 +36,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setTextSSBfromNotification(intent);
+    }
+
+    private void setTextSSBfromNotification(Intent intent) {
+        CharSequence ssb = intent.getCharSequenceExtra("com.datausagenotifier.extras.ssb");
+        if (ssb == null) return;
+        TextView textView = (TextView) findViewById(R.id.textView1);
+        textView.setText(ssb);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
@@ -45,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             button.setText(R.string.stop_service);
         }
+
+        // redundant if already called from onNewIntent, but this is simpler
+        Intent intent = getIntent();
+        setTextSSBfromNotification(intent);
     }
 
     @Override
