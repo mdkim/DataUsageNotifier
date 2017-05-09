@@ -24,6 +24,9 @@ public class TrafficStatsHelper {
 
     // returns null if no updated activity
     public static TrafficStatsUpdate getTrafficStatsUpdate(Context ctx) throws UnsupportedDeviceException {
+        if (MainActivity.IS_TEST_DATA) {
+            return getTestStats(ctx);
+        }
         long starttime = System.currentTimeMillis();
 
         // quick check of total data usage
@@ -76,6 +79,7 @@ public class TrafficStatsHelper {
         stats.setRxTxCount(rxtxCount);
 
         long dur = System.currentTimeMillis() - starttime;
+        stats.setDurationMs(dur);
         Log.v(TAG, "getTrafficStatsUpdate() dur=" + dur + " ms");
 
         return stats;

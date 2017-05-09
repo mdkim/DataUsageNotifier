@@ -6,9 +6,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Handler;
+import android.support.v4.app.NotificationCompat.Builder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.NotificationCompat;
-import android.support.v4.app.NotificationCompat.Builder;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.widget.Toast;
@@ -106,7 +106,7 @@ public class DataUsageMonitorService extends IntentService {
 
             TrafficStatsUpdate stats;
             try {
-                stats = TrafficStatsHelper.getTestStats(this); //getTrafficStatsUpdate(this); //
+                stats = TrafficStatsHelper.getTrafficStatsUpdate(this);
             } catch (UnsupportedDeviceException e) {
                 postToast("Unsupported device:\nYour device does not support traffic stats monitoring.");
                 stopSelf();

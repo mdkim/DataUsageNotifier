@@ -3,8 +3,8 @@ package com.datausagenotifier.model;
 import android.content.Context;
 import android.text.SpannableStringBuilder;
 import android.text.format.Formatter;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
+
+import com.datausagenotifier.util.Span;
 
 public class TrafficStatsUid {
 
@@ -33,8 +33,8 @@ public class TrafficStatsUid {
         appendBytes(ssb, "Sent", this.txBytes);
         String[] service_class= parseServiceName(this.serviceClass);
         String service_class_f = " (" + service_class[1] + ")";
-        ssb.append(service_class[0], BOLD_SPAN(), 0)
-                .append(service_class_f, TINY_SPAN(), 0)
+        ssb.append(service_class[0], Span.BOLD_SPAN(), 0)
+                .append(service_class_f, Span.TINY_SPAN(), 0)
                 .append("\n");
     }
 
@@ -42,7 +42,7 @@ public class TrafficStatsUid {
         if (bytes == 0) return;
         ssb.append(text).append(" ");
         if (bytes > 900_000) {
-            ssb.append(formatBytesPerSec(bytes), BOLD_SPAN(), 0);
+            ssb.append(formatBytesPerSec(bytes), Span.BOLD_SPAN(), 0);
         } else {
             ssb.append(formatBytesPerSec(bytes));
         }
@@ -71,12 +71,5 @@ public class TrafficStatsUid {
         long bytesPerSec = (long) bytesPerSec_float;
         String msg = Formatter.formatShortFileSize(ctx, bytesPerSec);
         return msg;
-    }
-
-    private static StyleSpan BOLD_SPAN() {
-        return new StyleSpan(android.graphics.Typeface.BOLD);
-    }
-    private static RelativeSizeSpan TINY_SPAN() {
-        return new RelativeSizeSpan(.85f);
     }
 }
