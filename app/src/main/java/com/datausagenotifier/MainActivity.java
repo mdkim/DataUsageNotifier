@@ -12,16 +12,25 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.ListView;
+
+import com.datausagenotifier.model.TrafficStatsArrayAdapter;
 
 public class MainActivity extends AppCompatActivity {
 
     private BroadcastReceiver receiver;
+    private TrafficStatsArrayAdapter statsArrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ListView listView = (ListView) findViewById(R.id.listView1);
+        TrafficStatsArrayAdapter adapter = new TrafficStatsArrayAdapter(this, R.layout.traffic_stats, R.id.textView1);
+        listView.setAdapter(adapter);
+        this.statsArrayAdapter = adapter;
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -60,8 +69,8 @@ public class MainActivity extends AppCompatActivity {
         if (!intent.getAction().equals("update")) return;
         CharSequence ssb = intent.getCharSequenceExtra("com.datausagenotifier.extras.ssb");
         if (ssb == null) return;
-        TextView textView = (TextView) findViewById(R.id.textView1);
-        textView.setText(ssb);
+
+        this.statsArrayAdapter.insert(ssb, 0);
     }
 
     @Override
@@ -84,10 +93,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (receiver != null) {
-            unregisterReceiver(receiver);
+            try {
+                unregisterReceiver(receiver);
+            } catch (IllegalArgumentException e) {
+                // not registered
+            }
             receiver = null;
         }
-        super.onDestroy();
     }
 
     @Override
