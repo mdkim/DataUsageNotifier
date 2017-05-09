@@ -7,6 +7,6 @@ Starting the service gets network activity stats since the last update, and poll
 
 Notification and toasts with updated stats while service is running. Pressing the notification shows a scrolling log of stats.
 
-![Screenshot](http://imgur.com/mJxOQjH)
+![Screenshot](http://i.imgur.com/k1blo0K.png)
 
-![Screenshot](http://imgur.com/LOQHmTI)
+![Screenshot](http://i.imgur.com/LOQHmTI.gif)
