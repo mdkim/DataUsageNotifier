@@ -105,7 +105,7 @@ public class DataUsageMonitorService extends IntentService {
 
             TrafficStatsUpdate stats;
             try {
-                stats = TrafficStatsHelper.getTestStats(this); //getTrafficStatsUpdate(this);
+                stats = TrafficStatsHelper.getTestStats(this); //getTrafficStatsUpdate(this); //
             } catch (UnsupportedDeviceException e) {
                 postToast("Unsupported device:\nYour device does not support traffic stats monitoring.");
                 stopSelf();
@@ -113,10 +113,14 @@ public class DataUsageMonitorService extends IntentService {
             }
 
             if (stats == null) {
+                PendingIntent pIntent_main = PendingIntent.getActivity(this, 0, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT);
                 Notification notification = notificationBuilder
                         .setStyle(new NotificationCompat.BigTextStyle()
                                 .setBigContentTitle("(No activity)")
                                 .bigText(""))
+                        .setContentIntent(pIntent_main)
+                        .setContentTitle("(No activity)") // for sdk21
+                        .setContentText("")
                         .setWhen(System.currentTimeMillis())
                         .build();
                 notificationManager.notify(NOTIFICATION_ID, notification);
@@ -125,7 +129,7 @@ public class DataUsageMonitorService extends IntentService {
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("com.datausagenotifier.extras.ssb", ssb);
                 intent.setAction("update");
-                PendingIntent pIntent_main = PendingIntent.getActivity(this, 0, intent, 0);
+                PendingIntent pIntent_main = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 String contentTitle = stats.getContentTitle().toString();
                 Notification notification = notificationBuilder
                         .setStyle(new NotificationCompat.BigTextStyle()
@@ -133,9 +137,14 @@ public class DataUsageMonitorService extends IntentService {
                                 //.setSummaryText("Summary Text")
                                 .bigText(ssb))
                         .setContentIntent(pIntent_main)
+                        .setContentTitle(contentTitle) // for sdk21
+                        .setContentText("")
                         .setWhen(System.currentTimeMillis())
                         .build();
                 notificationManager.notify(NOTIFICATION_ID, notification);
+
+                //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                //startActivity(intent); // refresh activity
 
                 postToast(contentTitle);
                 Log.v(TAG, ssb.toString());

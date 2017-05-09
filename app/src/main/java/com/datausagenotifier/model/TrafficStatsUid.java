@@ -32,10 +32,10 @@ public class TrafficStatsUid {
         appendBytes(ssb, "Received", this.rxBytes);
         appendBytes(ssb, "Sent", this.txBytes);
         String[] service_class= parseServiceName(this.serviceClass);
+        String service_class_f = " (" + service_class[1] + ")";
         ssb.append(service_class[0], BOLD_SPAN(), 0)
-                .append(" (")
-                .append(service_class[1], TINY_SPAN(), 0)
-                .append(")\n");
+                .append(service_class_f, TINY_SPAN(), 0)
+                .append("\n");
     }
 
     private void appendBytes(SpannableStringBuilder ssb, String text, long bytes) {
@@ -77,6 +77,6 @@ public class TrafficStatsUid {
         return new StyleSpan(android.graphics.Typeface.BOLD);
     }
     private static RelativeSizeSpan TINY_SPAN() {
-        return new RelativeSizeSpan(.5f);
+        return new RelativeSizeSpan(.85f);
     }
 }

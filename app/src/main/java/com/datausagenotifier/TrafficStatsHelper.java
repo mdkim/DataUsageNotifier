@@ -80,15 +80,16 @@ public class TrafficStatsHelper {
 
         return stats;
     }
-
+    private static int tempcounter=0;
     public static TrafficStatsUpdate getTestStats(Context ctx) throws UnsupportedDeviceException {
         TrafficStatsUpdate stats = new TrafficStatsUpdate();
         for (int i=1; i < 10; i++) {
-            TrafficStatsUid statsUid = new TrafficStatsUid(ctx, "com.google.android.location.places.service.PlaceDetectionAsyncService", i);
+            TrafficStatsUid statsUid = new TrafficStatsUid(ctx, "com.google.android.location.places.service.PlaceDet" + tempcounter, i);
             statsUid.setRxBytes(200_000 * i);
             statsUid.setTxBytes(200_000 * i);
             stats.addStatsUid(statsUid);
         }
+        tempcounter++;
         stats.setRxTxCount(1);
         return stats;
     }
