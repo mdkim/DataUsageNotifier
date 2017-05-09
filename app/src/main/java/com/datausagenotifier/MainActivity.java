@@ -1,7 +1,11 @@
 package com.datausagenotifier;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -11,6 +15,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
+
+    private BroadcastReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +39,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                setTextSSBfromNotification(intent);
+            }
+        };
+        IntentFilter intentFilter = new IntentFilter("update");
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
     }
 
     @Override
@@ -42,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setTextSSBfromNotification(Intent intent) {
+        if (!intent.getAction().equals("update")) return;
         CharSequence ssb = intent.getCharSequenceExtra("com.datausagenotifier.extras.ssb");
         if (ssb == null) return;
         TextView textView = (TextView) findViewById(R.id.textView1);
@@ -62,6 +78,16 @@ public class MainActivity extends AppCompatActivity {
         // redundant if already called from onNewIntent, but this is simpler
         Intent intent = getIntent();
         setTextSSBfromNotification(intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (receiver != null) {
+            unregisterReceiver(receiver);
+            receiver = null;
+        }
+        super.onDestroy();
     }
 
     @Override

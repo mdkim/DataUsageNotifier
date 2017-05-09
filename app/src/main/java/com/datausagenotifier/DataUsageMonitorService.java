@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Handler;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.text.SpannableStringBuilder;
@@ -143,8 +144,8 @@ public class DataUsageMonitorService extends IntentService {
                         .build();
                 notificationManager.notify(NOTIFICATION_ID, notification);
 
-                //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //startActivity(intent); // refresh activity
+                // refresh activity text
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
                 postToast(contentTitle);
                 Log.v(TAG, ssb.toString());
