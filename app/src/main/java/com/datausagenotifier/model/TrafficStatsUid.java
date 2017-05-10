@@ -2,9 +2,9 @@ package com.datausagenotifier.model;
 
 import android.content.Context;
 import android.text.SpannableStringBuilder;
-import android.text.format.Formatter;
 
 import com.datausagenotifier.util.Span;
+import com.datausagenotifier.util.TextUtil;
 
 public class TrafficStatsUid {
 
@@ -42,9 +42,9 @@ public class TrafficStatsUid {
         if (bytes == 0) return;
         ssb.append(text).append(" ");
         if (bytes > 900_000) {
-            ssb.append(formatBytesPerSec(bytes), Span.BOLD_SPAN(), 0);
+            ssb.append(TextUtil.formatBytesPerSec(ctx, bytes), Span.BOLD_SPAN(), 0);
         } else {
-            ssb.append(formatBytesPerSec(bytes));
+            ssb.append(TextUtil.formatBytesPerSec(ctx, bytes));
         }
         //ssb.append("/s");
         ssb.append(" ");
@@ -61,15 +61,5 @@ public class TrafficStatsUid {
         String packageName = className.substring(0, pos);
         String[] result = { serviceName, packageName };
         return result;
-    }
-
-    private String formatBytesPerSec(long bytes) {
-        // for now, return total bytes, not bytes per sec
-        float bytesPerSec_float = bytes;
-        //(bytes * 1000) / DataUsageMonitorService.POLLING_INTERVAL_MS;
-
-        long bytesPerSec = (long) bytesPerSec_float;
-        String msg = Formatter.formatShortFileSize(ctx, bytesPerSec);
-        return msg;
     }
 }
