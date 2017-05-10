@@ -15,10 +15,13 @@ import android.widget.Button;
 import android.widget.ListView;
 
 import com.datausagenotifier.model.TrafficStatsArrayAdapter;
+import com.datausagenotifier.model.TrafficStatsArrayItem;
+import com.datausagenotifier.util.Const;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final boolean IS_TEST_DATA = false;
+    public static final int POLLING_INTERVAL_MS = 8000;
 
     private BroadcastReceiver receiver;
     private TrafficStatsArrayAdapter statsArrayAdapter;
@@ -55,12 +58,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 setTextSSBfromNotification(intent);
+                refreshButtonLabel();
             }
         };
-        IntentFilter intentFilter = new IntentFilter("update");
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Const.ACTION_UPDATE);
+        intentFilter.addAction(Const.ACTION_NONE);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
     }
 
+    // for broadcast receiving, see onReceive() above
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -68,27 +75,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setTextSSBfromNotification(Intent intent) {
-        if (!intent.getAction().equals("update")) return;
-        CharSequence ssb = intent.getCharSequenceExtra("com.datausagenotifier.extras.ssb");
+        if (!intent.getAction().equals(Const.ACTION_UPDATE)) return;
+        CharSequence ssb = intent.getCharSequenceExtra(Const.EXTRAS_SSB);
         if (ssb == null) return;
-
-        this.statsArrayAdapter.insert(ssb, 0);
+        Boolean isFirstPass = intent.getBooleanExtra(Const.EXTRAS_ISFIRSTPASS, false);
+        TrafficStatsArrayItem item = new TrafficStatsArrayItem(ssb, isFirstPass);
+        this.statsArrayAdapter.insert(item, 0);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
+        refreshButtonLabel();
+
+        // redundant if already called from onNewIntent, but this is simpler
+        Intent intent = getIntent();
+        setTextSSBfromNotification(intent);
+    }
+
+    private void refreshButtonLabel() {
         Button button = (Button) findViewById(R.id.button);
         if (DataUsageMonitorService.IS_STOPPED) {
             button.setText(R.string.start_service);
         } else {
             button.setText(R.string.stop_service);
         }
-
-        // redundant if already called from onNewIntent, but this is simpler
-        Intent intent = getIntent();
-        setTextSSBfromNotification(intent);
     }
 
     @Override

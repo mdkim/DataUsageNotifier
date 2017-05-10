@@ -14,6 +14,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.datausagenotifier.model.TrafficStatsUpdate;
+import com.datausagenotifier.util.Const;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -23,8 +24,6 @@ public class DataUsageMonitorService extends IntentService {
 
     public volatile static boolean IS_STOPPED = true;
     private volatile static Thread SLEEPING_THREAD;
-
-    public static final int POLLING_INTERVAL_MS = 8000;
 
     private static final String TAG = "DataUsageMonitorService";
     private static final int NOTIFICATION_ID = 1;
@@ -43,7 +42,7 @@ public class DataUsageMonitorService extends IntentService {
         uiThreadHandler = new Handler();
 
         Intent intent_stopSelf = new Intent(this, StopService.class);
-        intent_stopSelf.setAction(StopService.ACTION_STOP);
+        intent_stopSelf.setAction(Const.ACTION_STOP);
         PendingIntent pIntent_stopSelf = PendingIntent.getService(this, 0, intent_stopSelf, 0);
         PendingIntent pIntent_none = PendingIntent.getActivity(this, 0, new Intent(), 0);
         notificationBuilder = new NotificationCompat.Builder(this)
@@ -77,7 +76,7 @@ public class DataUsageMonitorService extends IntentService {
         SLEEPING_THREAD = Thread.currentThread();
         long threadId = SLEEPING_THREAD.getId();
         try {
-            Thread.sleep(POLLING_INTERVAL_MS);
+            Thread.sleep(MainActivity.POLLING_INTERVAL_MS);
         } catch (InterruptedException e) {
             Log.v(TAG, "Interrupted sleeping thread (" + threadId + ")");
         }
@@ -126,11 +125,10 @@ public class DataUsageMonitorService extends IntentService {
                         .build();
                 notificationManager.notify(NOTIFICATION_ID, notification);
             } if (stats != null) {
-                SpannableStringBuilder ssb = stats.formatSpannable();
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra("com.datausagenotifier.extras.ssb", ssb);
-                intent.setAction("update");
-                PendingIntent pIntent_main = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                SpannableStringBuilder ssb = stats.formatSpannable(this);
+                Intent intentOpen = new Intent(this, MainActivity.class);
+                intentOpen.setAction(Const.ACTION_NONE);
+                PendingIntent pIntent_main = PendingIntent.getActivity(this, 0, intentOpen, PendingIntent.FLAG_UPDATE_CURRENT);
                 String contentTitle = stats.getContentTitle().toString();
                 Notification notification = notificationBuilder
                         .setStyle(new NotificationCompat.BigTextStyle()
@@ -145,6 +143,10 @@ public class DataUsageMonitorService extends IntentService {
                 notificationManager.notify(NOTIFICATION_ID, notification);
 
                 // refresh activity text
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra(Const.EXTRAS_SSB, ssb);
+                intent.putExtra(Const.EXTRAS_ISFIRSTPASS, stats.isFirstPass());
+                intent.setAction(Const.ACTION_UPDATE);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
                 postToast(contentTitle);
@@ -174,6 +176,10 @@ public class DataUsageMonitorService extends IntentService {
         if (SLEEPING_THREAD != null) SLEEPING_THREAD.interrupt();
 
         stopForeground(true);
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setAction(Const.ACTION_NONE); // just refresh button label
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         long threadId = Thread.currentThread().getId();
         Log.v(TAG, "called onDestroy (" + threadId + ")");

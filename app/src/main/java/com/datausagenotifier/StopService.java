@@ -4,9 +4,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
-public class StopService extends Service {
+import com.datausagenotifier.util.Const;
 
-    public static final String ACTION_STOP = "ACTION_STOP";
+public class StopService extends Service {
 
     public StopService() {
     }
@@ -14,7 +14,7 @@ public class StopService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent.getAction();
-        if (action != null && action.equals(ACTION_STOP)) {
+        if (action != null && action.equals(Const.ACTION_STOP)) {
             Intent intentStop = new Intent(this, DataUsageMonitorService.class);
             stopService(intentStop);
             return START_NOT_STICKY;

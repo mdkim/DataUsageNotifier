@@ -17,6 +17,7 @@ public class TrafficStatsHelper {
 
     private static final String TAG = "TrafficStatsHelper";
 
+    private static boolean IS_FIRST_PASS;
     private static long TOTAL_RX_BYTES;
     private static long TOTAL_TX_BYTES;
     private static LongSparseArray<Long> UID_RX_MAP = new LongSparseArray<>();
@@ -38,6 +39,9 @@ public class TrafficStatsHelper {
         if (totalRxBytes == TOTAL_RX_BYTES && totalTxBytes == TOTAL_TX_BYTES) {
             return null;
         }
+        long deltaTotalRxBytes = totalRxBytes - TOTAL_RX_BYTES;
+        long deltaTotalTxBytes = totalTxBytes - TOTAL_TX_BYTES;
+        IS_FIRST_PASS = (TOTAL_RX_BYTES == 0 && TOTAL_TX_BYTES == 0 && UID_RX_MAP.size() == 0 && UID_TX_MAP.size() == 0);
         TOTAL_RX_BYTES = totalRxBytes;
         TOTAL_TX_BYTES = totalTxBytes;
 
@@ -47,7 +51,10 @@ public class TrafficStatsHelper {
         List<ActivityManager.RunningServiceInfo> rsiList = activityManager.getRunningServices(Integer.MAX_VALUE);
 
         int rxtxCount=0; //rxCount=0, txCount=0
+        long deltaTotalUidRxBytes=0, deltaTotalUidTxBytes=0;
         for (ActivityManager.RunningServiceInfo rsi : rsiList) {
+            //if (!rsi.started && !IS_FIRST_PASS) continue; // skip stopped services
+
             int uid = rsi.uid;
             //String processName = rsi.process;
             String serviceClass = rsi.service.getClassName();
@@ -59,14 +66,24 @@ public class TrafficStatsHelper {
             boolean isRx = (uidRxBytes > prev_uidRxBytes);
             boolean isTx = (uidTxBytes > prev_uidTxBytes);
             if (!(isRx || isTx)) continue;
+            deltaTotalUidRxBytes += (uidRxBytes - prev_uidRxBytes);
+            deltaTotalUidTxBytes += (uidTxBytes - prev_uidTxBytes);
+
+            if (!rsi.started && !IS_FIRST_PASS) {
+                Log.e(TAG, "Unexpected activity on stopped service: " + serviceClass);
+            }
 
             TrafficStatsUid statsUid = new TrafficStatsUid(ctx, serviceClass, uid);
             if (isRx) {
-                statsUid.setRxBytes((uidRxBytes - prev_uidRxBytes));
+                long rxBytes = (uidRxBytes - prev_uidRxBytes);
+                statsUid.setRxBytes(rxBytes);
+                deltaTotalUidRxBytes += rxBytes;
                 //rxCount++;
             }
             if (isTx) {
-                statsUid.setTxBytes((uidTxBytes - prev_uidTxBytes));
+                long txBytes = (uidTxBytes - prev_uidTxBytes);
+                statsUid.setTxBytes(txBytes);
+                deltaTotalUidTxBytes += txBytes;
                 //txCount++;
             }
             stats.addStatsUid(statsUid);
@@ -77,6 +94,9 @@ public class TrafficStatsHelper {
         }
 
         stats.setRxTxCount(rxtxCount);
+        stats.setUnknownRxBytes(deltaTotalRxBytes - deltaTotalUidRxBytes);
+        stats.setUnknownTxBytes(deltaTotalTxBytes - deltaTotalUidTxBytes);
+        stats.setIsFirstPass(IS_FIRST_PASS);
 
         long dur = System.currentTimeMillis() - starttime;
         stats.setDurationMs(dur);
@@ -84,6 +104,7 @@ public class TrafficStatsHelper {
 
         return stats;
     }
+
     private static int tempcounter=0;
     public static TrafficStatsUpdate getTestStats(Context ctx) throws UnsupportedDeviceException {
         TrafficStatsUpdate stats = new TrafficStatsUpdate();
