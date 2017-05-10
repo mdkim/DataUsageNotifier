@@ -24,6 +24,7 @@
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
         android:layout_below="@+id/button"
-        android:headerDividersEnabled="true" />
+        android:headerDividersEnabled="true"
+        android:background="@color/primary_text"/>
 
 </RelativeLayout>

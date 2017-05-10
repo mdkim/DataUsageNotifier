@@ -12,6 +12,8 @@ public class TextUtil {
 
         long bytesPerSec = (long) bytesPerSec_float;
         String msg = Formatter.formatShortFileSize(ctx, bytesPerSec);
+        msg = msg.toLowerCase();
+        msg = msg.replace("mb", "MB");
         return msg;
     }
 }
