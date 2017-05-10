@@ -116,6 +116,9 @@ public class TrafficStatsHelper {
         }
         tempcounter++;
         stats.setRxTxCount(1);
+        stats.setUnknownRxBytes(111);
+        stats.setUnknownTxBytes(222);
+        if (tempcounter%2 ==0) stats.setIsFirstPass(true);
         return stats;
     }
 
