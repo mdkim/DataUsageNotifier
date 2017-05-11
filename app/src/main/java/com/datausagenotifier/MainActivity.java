@@ -18,9 +18,17 @@ import com.datausagenotifier.model.TrafficStatsArrayAdapter;
 import com.datausagenotifier.model.TrafficStatsArrayItem;
 import com.datausagenotifier.util.Const;
 
+import org.json.JSONException;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
 
-    public static final boolean IS_TEST_DATA = false;
+    public static final boolean IS_TEST_DATA = true;
     public static final int POLLING_INTERVAL_MS = 8000;
 
     private BroadcastReceiver receiver;
@@ -134,8 +142,59 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_exit) {
             finish();
             return true;
+        } else if (id == R.id.action_clear) {
+            this.statsArrayAdapter.clear();
+            this.clearCache();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // store statsArrayAdapter to cache
+        File file = new File(getCacheDir(), Const.FILE_CACHE_STATSARRAYADAPTER);
+        try (
+                FileWriter fw = new FileWriter(file)
+        ) {
+            this.statsArrayAdapter.serialize(fw);
+        } catch (IOException e) {
+            new RuntimeException(e);
+        } catch (JSONException e) {
+            new RuntimeException(e);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (this.statsArrayAdapter.getCount() > 0) return;
+
+        // read statsArrayAdapter from cache
+        File file = new File(getCacheDir(), Const.FILE_CACHE_STATSARRAYADAPTER);
+        if (!file.exists()) return;
+        try (
+                FileReader reader = new FileReader(file)
+        ) {
+            this.statsArrayAdapter.deserialize(reader);
+        } catch (FileNotFoundException e) {
+            new RuntimeException(e);
+        } catch (IOException e) {
+            new RuntimeException(e);
+        }
+    }
+
+    private void clearCache() {
+        File file = new File(getCacheDir(), Const.FILE_CACHE_STATSARRAYADAPTER);
+        FileWriter fw;
+        try {
+            fw = new FileWriter(file);
+            fw.close();
+        } catch (IOException e) {
+            new RuntimeException(e);
+        }
     }
 }

@@ -7,4 +7,6 @@ public class Const {
 
     public static final String EXTRAS_SSB = "com.datausagenotifier.extras.ssb";
     public static final String EXTRAS_ISFIRSTPASS = "com.datausagenotifier.extras.isFirstPass";
+
+    public static final String FILE_CACHE_STATSARRAYADAPTER = "dun.tsaa.cache";
 }
