@@ -1,3 +1,4 @@
+# Android Studio template
 *.iml
 .gradle
 /local.properties
@@ -8,5 +9,6 @@
 /captures
 .externalNativeBuild
 
+# custom
 /.idea/dictionaries/
 /.idea/inspectionProfiles/

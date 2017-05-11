@@ -112,43 +112,31 @@ public class DataUsageMonitorService extends IntentService {
                 return;
             }
 
-            if (stats == null) {
-                PendingIntent pIntent_main = PendingIntent.getActivity(this, 0, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT);
-                Notification notification = notificationBuilder
-                        .setStyle(new NotificationCompat.BigTextStyle()
-                                .setBigContentTitle("(No activity)")
-                                .bigText(""))
-                        .setContentIntent(pIntent_main)
-                        .setContentTitle("(No activity)") // for sdk21
-                        .setContentText("")
-                        .setWhen(System.currentTimeMillis())
-                        .build();
-                notificationManager.notify(NOTIFICATION_ID, notification);
-            } if (stats != null) {
-                SpannableStringBuilder ssb = stats.formatSpannable(this);
-                Intent intentOpen = new Intent(this, MainActivity.class);
-                intentOpen.setAction(Const.ACTION_NONE);
-                PendingIntent pIntent_main = PendingIntent.getActivity(this, 0, intentOpen, PendingIntent.FLAG_UPDATE_CURRENT);
-                String contentTitle = stats.getContentTitle().toString();
-                Notification notification = notificationBuilder
-                        .setStyle(new NotificationCompat.BigTextStyle()
-                                .setBigContentTitle(contentTitle)
-                                //.setSummaryText("Summary Text")
-                                .bigText(ssb))
-                        .setContentIntent(pIntent_main)
-                        .setContentTitle(contentTitle) // for sdk21
-                        .setContentText("")
-                        .setWhen(System.currentTimeMillis())
-                        .build();
-                notificationManager.notify(NOTIFICATION_ID, notification);
+            SpannableStringBuilder ssb = stats.formatSpannable(this);
+            Intent intentOpen = new Intent(this, MainActivity.class);
+            intentOpen.setAction(Const.ACTION_NONE);
+            PendingIntent pIntent_main = PendingIntent.getActivity(this, 0, intentOpen, PendingIntent.FLAG_UPDATE_CURRENT);
+            String contentTitle = stats.getContentTitle().toString();
+            Notification notification = notificationBuilder
+                    .setStyle(new NotificationCompat.BigTextStyle()
+                            .setBigContentTitle(contentTitle)
+                            //.setSummaryText("Summary Text")
+                            .bigText(ssb))
+                    .setContentIntent(pIntent_main)
+                    .setContentTitle(contentTitle) // for sdk21
+                    .setContentText(ssb)
+                    .setWhen(System.currentTimeMillis())
+                    .build();
+            notificationManager.notify(NOTIFICATION_ID, notification);
 
-                // refresh activity text
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra(Const.EXTRAS_SSB, ssb);
-                intent.putExtra(Const.EXTRAS_ISFIRSTPASS, stats.isFirstPass());
-                intent.setAction(Const.ACTION_UPDATE);
-                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+            // refresh activity text
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra(Const.EXTRAS_SSB, ssb);
+            intent.putExtra(Const.EXTRAS_ISFIRSTPASS, stats.isFirstPass());
+            intent.setAction(Const.ACTION_UPDATE);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
+            if (!stats.isNoActivity()) {
                 postToast(contentTitle);
                 Log.v(TAG, ssb.toString());
             }
