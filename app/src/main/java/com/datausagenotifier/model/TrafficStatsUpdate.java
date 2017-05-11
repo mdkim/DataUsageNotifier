@@ -19,6 +19,10 @@ public class TrafficStatsUpdate {
     private long unknownTxBytes;
     private long dur;
     private boolean isFirstPass;
+    private long updatedAgo;
+    private boolean noActivity=false;
+
+    public TrafficStatsUpdate() {}
 
     public void addStatsUid(TrafficStatsUid statsUid) {
         statsUidList.add(statsUid);
@@ -28,16 +32,57 @@ public class TrafficStatsUpdate {
         this.rxtxCount = rxtxCount;
     }
 
+    public void setDurationMs(long dur) {
+        this.dur = dur;
+    }
+
+    public void setUnknownRxBytes(long unknownRxBytes) {
+        this.unknownRxBytes = unknownRxBytes;
+    }
+
+    public void setUnknownTxBytes(long unknownTxBytes) {
+        this.unknownTxBytes = unknownTxBytes;
+    }
+
+    public void setIsFirstPass(boolean isFirstPass) {
+        this.isFirstPass = isFirstPass;
+    }
+
+    public void setUpdatedAgo(long updatedAgo) {
+        this.updatedAgo = updatedAgo;
+    }
+
+    public void setNoActivity(boolean noActivity) {
+        this.noActivity = noActivity;
+    }
+
+    // getters
+
     public CharSequence getContentTitle() {
+        if (this.noActivity) return "(No activity)";
         return rxtxCount + "+ apps sent/received data";
     }
 
+    public boolean isFirstPass() {
+        return this.isFirstPass;
+    }
+
+    public boolean isNoActivity() {
+        return this.noActivity;
+    }
+
     public SpannableStringBuilder formatSpannable(Context ctx) {
+        if (this.noActivity) return formatSpannable_NoActivity();
 
         StringBuilder metalog = new StringBuilder();
         metalog.append("[").append(dur).append(" ms]");
+        if (this.isFirstPass()) {
+            metalog.append(" All available stats");
+        } else {
+            metalog.append(" Since ").append(this.updatedAgo).append(" sec ago");
+        }
         if (this.unknownRxBytes > 0 || this.unknownTxBytes > 0) {
-            metalog.append(" (Unknown apps");
+            metalog.append("\n(Unknown apps");
             if (this.unknownRxBytes > 0) {
                 metalog.append(" received ")
                         .append(TextUtil.formatBytesPerSec(ctx, this.unknownRxBytes));
@@ -73,23 +118,15 @@ public class TrafficStatsUpdate {
         });
     }
 
-    public void setDurationMs(long dur) {
-        this.dur = dur;
-    }
+    private SpannableStringBuilder formatSpannable_NoActivity() {
+        StringBuilder metalog = new StringBuilder();
+        metalog.append("[").append(dur).append(" ms]");
+        metalog.append(" (No activity)")
+                .append(" Since ").append(this.updatedAgo).append(" sec ago");
+        metalog.append("\n");
 
-    public void setUnknownRxBytes(long unknownRxBytes) {
-        this.unknownRxBytes = unknownRxBytes;
-    }
-
-    public void setUnknownTxBytes(long unknownTxBytes) {
-        this.unknownTxBytes = unknownTxBytes;
-    }
-
-    public void setIsFirstPass(boolean isFirstPass) {
-        this.isFirstPass = isFirstPass;
-    }
-
-    public boolean isFirstPass() {
-        return this.isFirstPass;
+        SpannableStringBuilder ssb = new SpannableStringBuilder();
+        ssb.append(metalog, Span.TINY_SPAN(), 0);
+        return ssb;
     }
 }

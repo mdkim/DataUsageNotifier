@@ -17,11 +17,12 @@ public class TrafficStatsHelper {
 
     private static final String TAG = "TrafficStatsHelper";
 
-    private static boolean IS_FIRST_PASS;
+    private static boolean IS_FIRST_PASS = true;
     private static long TOTAL_RX_BYTES;
     private static long TOTAL_TX_BYTES;
     private static LongSparseArray<Long> UID_RX_MAP = new LongSparseArray<>();
     private static LongSparseArray<Long> UID_TX_MAP = new LongSparseArray<>();
+    private static long LAST_UPDATED=0;
 
     // returns null if no updated activity
     public static TrafficStatsUpdate getTrafficStatsUpdate(Context ctx) throws UnsupportedDeviceException {
@@ -29,6 +30,7 @@ public class TrafficStatsHelper {
             return getTestStats(ctx);
         }
         long starttime = System.currentTimeMillis();
+        long updatedAgo = refreshLastUpdated_GetUpdatedAgo();
 
         // quick check of total data usage
         long totalRxBytes = TrafficStats.getTotalRxBytes();
@@ -36,8 +38,14 @@ public class TrafficStatsHelper {
         if (totalRxBytes == TrafficStats.UNSUPPORTED) {
             throw new UnsupportedDeviceException();
         }
+        TrafficStatsUpdate stats = new TrafficStatsUpdate();
         if (totalRxBytes == TOTAL_RX_BYTES && totalTxBytes == TOTAL_TX_BYTES) {
-            return null;
+            // no activity (skip uid traffic stats)
+            stats.setNoActivity(true);
+            stats.setUpdatedAgo(updatedAgo);
+            long dur = System.currentTimeMillis() - starttime;
+            stats.setDurationMs(dur);
+            return stats;
         }
         long deltaTotalRxBytes = totalRxBytes - TOTAL_RX_BYTES;
         long deltaTotalTxBytes = totalTxBytes - TOTAL_TX_BYTES;
@@ -45,7 +53,6 @@ public class TrafficStatsHelper {
         TOTAL_RX_BYTES = totalRxBytes;
         TOTAL_TX_BYTES = totalTxBytes;
 
-        TrafficStatsUpdate stats = new TrafficStatsUpdate();
         ActivityManager activityManager = (ActivityManager) ctx.getSystemService(Context.ACTIVITY_SERVICE);
         //List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
         List<ActivityManager.RunningServiceInfo> rsiList = activityManager.getRunningServices(Integer.MAX_VALUE);
@@ -97,6 +104,7 @@ public class TrafficStatsHelper {
         stats.setUnknownRxBytes(deltaTotalRxBytes - deltaTotalUidRxBytes);
         stats.setUnknownTxBytes(deltaTotalTxBytes - deltaTotalUidTxBytes);
         stats.setIsFirstPass(IS_FIRST_PASS);
+        stats.setUpdatedAgo(updatedAgo);
 
         long dur = System.currentTimeMillis() - starttime;
         stats.setDurationMs(dur);
@@ -105,20 +113,39 @@ public class TrafficStatsHelper {
         return stats;
     }
 
+    private static long refreshLastUpdated_GetUpdatedAgo() {
+        long lastUpdated = LAST_UPDATED;
+        LAST_UPDATED = System.currentTimeMillis();
+        long updatedAgo = ((LAST_UPDATED - lastUpdated) / 1000);
+        return updatedAgo;
+    }
+
     private static int tempcounter=0;
     public static TrafficStatsUpdate getTestStats(Context ctx) throws UnsupportedDeviceException {
+        long updatedAgo = refreshLastUpdated_GetUpdatedAgo();
+
         TrafficStatsUpdate stats = new TrafficStatsUpdate();
-        for (int i=1; i < 10; i++) {
+        if (tempcounter++ % 2 == 1) {
+            // no activity
+            stats.setNoActivity(true);
+            stats.setUpdatedAgo(updatedAgo);
+            stats.setDurationMs(1);
+            return stats;
+        }
+
+        for (int i = 1; i <= 5; i++) {
             TrafficStatsUid statsUid = new TrafficStatsUid(ctx, "com.google.android.location.places.service.PlaceDet" + tempcounter, i);
-            statsUid.setRxBytes(200_000 * i);
-            statsUid.setTxBytes(200_000 * i);
+            statsUid.setRxBytes(300_000 * i);
+            statsUid.setTxBytes(300_000 * i);
             stats.addStatsUid(statsUid);
         }
-        tempcounter++;
         stats.setRxTxCount(1);
         stats.setUnknownRxBytes(111);
         stats.setUnknownTxBytes(222);
-        if (tempcounter%2 ==0) stats.setIsFirstPass(true);
+        stats.setIsFirstPass(IS_FIRST_PASS);
+        stats.setUpdatedAgo(updatedAgo);
+        stats.setDurationMs(2);
+        IS_FIRST_PASS = false;
         return stats;
     }
 
