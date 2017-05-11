@@ -13,4 +13,17 @@ public class Span {
     public static RelativeSizeSpan TINY_SPAN() {
         return new RelativeSizeSpan(.85f);
     }
+
+    public static class BOLD_SPAN_FACTORY implements SpanFactory {
+        @Override
+        public StyleSpan getInstance() {
+            return BOLD_SPAN();
+        }
+    }
+    public static class TINY_SPAN_FACTORY implements SpanFactory {
+        @Override
+        public RelativeSizeSpan getInstance() {
+            return TINY_SPAN();
+        }
+    }
 }

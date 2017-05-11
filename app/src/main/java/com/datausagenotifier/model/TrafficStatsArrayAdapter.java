@@ -5,10 +5,18 @@ import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.JsonReader;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import org.json.JSONException;
+import org.json.JSONStringer;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class TrafficStatsArrayAdapter extends ArrayAdapter<TrafficStatsArrayItem> {
 
@@ -32,5 +40,28 @@ public class TrafficStatsArrayAdapter extends ArrayAdapter<TrafficStatsArrayItem
         TextView textView = (TextView) view.findViewById(textViewResourceId);
         textView.setTextColor(0xffffffff);
         return view;
+    }
+
+    public void serialize(FileWriter fw) throws IOException, JSONException {
+        JSONStringer stringer = new JSONStringer();
+        stringer.array();
+        for (int i=0; i < getCount(); i++) {
+            TrafficStatsArrayItem item = getItem(i);
+            item.toJSONStringer(stringer);
+        }
+        stringer.endArray();
+
+        fw.write(stringer.toString());
+    }
+
+    public void deserialize(FileReader fileReader) throws IOException {
+        TrafficStatsArrayItem item;
+        JsonReader reader = new JsonReader(fileReader);
+        reader.beginArray();
+        while(reader.hasNext()) {
+            item = TrafficStatsArrayItem.getItemFromJsonReader(reader);
+            add(item);
+        }
+        reader.endArray();
     }
 }
