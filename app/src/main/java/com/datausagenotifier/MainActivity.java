@@ -28,8 +28,9 @@ import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final boolean IS_TEST_DATA = true;
+    public static final boolean IS_TEST_DATA = false;
     public static final int POLLING_INTERVAL_MS = 8000;
+    public static final int MAX_AUTO_UPDATES = 20;
 
     private BroadcastReceiver receiver;
     private TrafficStatsArrayAdapter statsArrayAdapter;

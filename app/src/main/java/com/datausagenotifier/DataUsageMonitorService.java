@@ -100,7 +100,7 @@ public class DataUsageMonitorService extends IntentService {
 
         long threadId = Thread.currentThread().getId();
         int i=0;
-        while(!IS_STOPPED && i++ < 100) {
+        while(!IS_STOPPED && i++ < MainActivity.MAX_AUTO_UPDATES) {
             Log.v(TAG, "called handleActionStart (" + threadId + ") [i=" + i + "]");
 
             TrafficStatsUpdate stats;
@@ -151,7 +151,6 @@ public class DataUsageMonitorService extends IntentService {
         uiThreadHandler.post(new Runnable() {
             @Override
             public void run() {
-                // TODO: position toast at top of screen; make font small
                 Toast.makeText(DataUsageMonitorService.this, msg, Toast.LENGTH_LONG).show();
             }
         });
