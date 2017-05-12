@@ -1,7 +1,7 @@
 # DataUsageNotifier
-Data Usage Notifier - An Android App
+### **Data Usage Notifier - An Android App**
 
-Who has been sending/receiving data on your phone in the background?
+**_Who has been sending/receiving data on your phone in the background?_**
 
 Starting the service gets network activity stats since the last update, and polls every 8 seconds until stopped. Works in the background.
 
