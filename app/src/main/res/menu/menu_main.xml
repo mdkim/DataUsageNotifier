@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.datausagenotifier.MainActivity">
     <item
+        android:id="@+id/action_export"
+        android:orderInCategory="80"
+        android:title="@string/action_export"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_clear"
         android:orderInCategory="90"
         android:title="@string/action_clear"

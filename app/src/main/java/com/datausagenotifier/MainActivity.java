@@ -1,7 +1,9 @@
 package com.datausagenotifier;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BroadcastReceiver receiver;
     private TrafficStatsArrayAdapter statsArrayAdapter;
+    private AlertDialog alertDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +77,15 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction(Const.ACTION_UPDATE);
         intentFilter.addAction(Const.ACTION_NONE);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create(); // THEME
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        this.alertDialog = alertDialog;
     }
 
     // for broadcast receiving, see onReceive() above
@@ -147,6 +159,18 @@ public class MainActivity extends AppCompatActivity {
             this.statsArrayAdapter.clear();
             this.clearCache();
             return true;
+        } else if (id == R.id.action_export) {
+            int status = this.statsArrayAdapter.exportLogs();
+            if (status < 0) {
+                this.alertDialog.setTitle("Error exporting logs");
+                this.alertDialog.setMessage("Status code = " + status);
+                this.alertDialog.show();
+            } else if (status > 0) {
+                this.alertDialog.setTitle("Exported logs");
+                this.alertDialog.setMessage("Log file exported to Download folder");
+                this.alertDialog.show();
+            }
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -162,9 +186,7 @@ public class MainActivity extends AppCompatActivity {
                 FileWriter fw = new FileWriter(file)
         ) {
             this.statsArrayAdapter.serialize(fw);
-        } catch (IOException e) {
-            new RuntimeException(e);
-        } catch (JSONException e) {
+        } catch (IOException | JSONException e) {
             new RuntimeException(e);
         }
     }
@@ -181,8 +203,6 @@ public class MainActivity extends AppCompatActivity {
                 FileReader reader = new FileReader(file)
         ) {
             this.statsArrayAdapter.deserialize(reader);
-        } catch (FileNotFoundException e) {
-            new RuntimeException(e);
         } catch (IOException e) {
             new RuntimeException(e);
         }

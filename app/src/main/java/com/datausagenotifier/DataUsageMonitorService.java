@@ -46,14 +46,14 @@ public class DataUsageMonitorService extends IntentService {
         PendingIntent pIntent_stopSelf = PendingIntent.getService(this, 0, intent_stopSelf, 0);
         PendingIntent pIntent_none = PendingIntent.getActivity(this, 0, new Intent(), 0);
         notificationBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.temp1)
+                .setSmallIcon(R.drawable.ic_stat_icon)
                 //.setContentTitle("content title")
                 //.setContentText("content text")
                 //.setSubText("subtext")
                 //.setContentInfo("content info")
                 .setShowWhen(true)
                 .setWhen(System.currentTimeMillis())
-                .addAction(R.drawable.temp1, "Stop service", pIntent_stopSelf)
+                .addAction(R.drawable.ic_action_stopservice, "Stop service", pIntent_stopSelf)
                 .setContentIntent(pIntent_none)
                 .setCategory(Notification.CATEGORY_STATUS)
 
