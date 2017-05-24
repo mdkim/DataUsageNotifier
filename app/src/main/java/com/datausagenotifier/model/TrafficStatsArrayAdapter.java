@@ -80,14 +80,15 @@ public class TrafficStatsArrayAdapter extends ArrayAdapter<TrafficStatsArrayItem
             }
 
             Drawable d;
-            try {
-                d = res.getDrawableForDensity(appInfo.icon, DisplayMetrics.DENSITY_MEDIUM, null);
-            } catch (Resources.NotFoundException e) {
-                if (appInfo.icon != 0) {
-                    Log.e(TAG, "unexpected: appInfo.icon=" + appInfo.icon, e);
-                    throw new RuntimeException(e);
-                }
+            if (appInfo.icon == 0) {
                 d = getGenericAndroidIcon(ctx, packageName);
+            } else {
+                try {
+                    d = res.getDrawableForDensity(appInfo.icon, DisplayMetrics.DENSITY_MEDIUM, null);
+                } catch (Resources.NotFoundException e) {
+                    Log.e(TAG, "unexpected: appInfo.icon=" + appInfo.icon, e);
+                    d = getGenericAndroidIcon(ctx, packageName);
+                }
             }
             if (d == null) continue;
 
@@ -95,6 +96,9 @@ public class TrafficStatsArrayAdapter extends ArrayAdapter<TrafficStatsArrayItem
             int w = d.getIntrinsicWidth();
             if (h != ICON_SIZE_PX || w != ICON_SIZE_PX) {
                 Log.i(TAG, "packageName=" + packageName + ", h=" + h + ", w=" + w);
+                // d can be VectorDrawable
+                if (!(d instanceof BitmapDrawable)) break;
+
                 BitmapDrawable bd = (BitmapDrawable) d;
                 Bitmap bitmap = Bitmap.createScaledBitmap(bd.getBitmap(), ICON_SIZE_PX, ICON_SIZE_PX, false);
                 d = new BitmapDrawable(res, bitmap);

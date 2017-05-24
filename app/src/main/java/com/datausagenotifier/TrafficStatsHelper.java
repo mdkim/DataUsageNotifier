@@ -134,10 +134,12 @@ public class TrafficStatsHelper {
             return stats;
         }
 
-        for (int i = 1; i <= 5; i++) {
+        String[] serviceNames = { "DataUsageMonitorService", "KeyguardService", "PlaceDetectionService", "LatinIME", "GeofenceHardwareService", "MmsService", "DefaultContainerService", "TelephonyDebugService" };
+        String[] packageNames = { "com.datausagenotifier", "com.android.systemui", "com.google.android.gms", "com.android.inputmethod.latin", "android", "com.android.mms.service", "com.android.defcontainer", "com.android.phone" };
+        for (int i = 0; i < serviceNames.length; i++) {
             TrafficStatsUid statsUid = new TrafficStatsUid(ctx,
-                    "com.google.android.location.places.service.PlaceDet" + tempcounter,
-                    "com.google.android.location.places.service", i);
+                    serviceNames[i],
+                    packageNames[i], i);
             statsUid.setRxBytes(300_000 * i);
             statsUid.setTxBytes(300_000 * i);
             stats.addStatsUid(statsUid);
