@@ -65,6 +65,7 @@ public class TrafficStatsHelper {
             int uid = rsi.uid;
             //String processName = rsi.process;
             String serviceClass = rsi.service.getClassName();
+            String packageName = rsi.service.getPackageName();
 
             long uidRxBytes = TrafficStats.getUidRxBytes(uid);
             long uidTxBytes = TrafficStats.getUidTxBytes(uid);
@@ -80,7 +81,7 @@ public class TrafficStatsHelper {
                 Log.e(TAG, "Unexpected activity on stopped service: " + serviceClass);
             }
 
-            TrafficStatsUid statsUid = new TrafficStatsUid(ctx, serviceClass, uid);
+            TrafficStatsUid statsUid = new TrafficStatsUid(ctx, serviceClass, packageName, uid);
             if (isRx) {
                 long rxBytes = (uidRxBytes - prev_uidRxBytes);
                 statsUid.setRxBytes(rxBytes);
@@ -134,7 +135,9 @@ public class TrafficStatsHelper {
         }
 
         for (int i = 1; i <= 5; i++) {
-            TrafficStatsUid statsUid = new TrafficStatsUid(ctx, "com.google.android.location.places.service.PlaceDet" + tempcounter, i);
+            TrafficStatsUid statsUid = new TrafficStatsUid(ctx,
+                    "com.google.android.location.places.service.PlaceDet" + tempcounter,
+                    "com.google.android.location.places.service", i);
             statsUid.setRxBytes(300_000 * i);
             statsUid.setTxBytes(300_000 * i);
             stats.addStatsUid(statsUid);

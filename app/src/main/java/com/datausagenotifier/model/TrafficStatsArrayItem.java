@@ -13,13 +13,17 @@ import org.json.JSONException;
 import org.json.JSONStringer;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TrafficStatsArrayItem extends SpannableString {
 
+    private List<String> packageNames;
     private boolean isFirstPass;
 
-    public TrafficStatsArrayItem(CharSequence source, boolean isFirstPass) {
+    public TrafficStatsArrayItem(CharSequence source, List<String> packageNames, boolean isFirstPass) {
         super(source);
+        this.packageNames = packageNames;
         this.isFirstPass = isFirstPass;
     }
 
@@ -40,6 +44,8 @@ public class TrafficStatsArrayItem extends SpannableString {
         stringerSpans(stringer, StyleSpan.class, "styleSpans");
         stringerSpans(stringer, RelativeSizeSpan.class, "relativeSpans");
 
+        stringerPackageNames(stringer);
+
         stringer.endObject(); // end item object
         return stringer;
     }
@@ -57,12 +63,22 @@ public class TrafficStatsArrayItem extends SpannableString {
         stringer.endArray(); // end spans array
     }
 
+    private void stringerPackageNames(JSONStringer stringer) throws JSONException {
+        stringer.key("packageNames");
+        stringer.array();
+        for (String packageName : packageNames) {
+            stringer.value(packageName);
+        }
+        stringer.endArray();
+    }
+
     public static TrafficStatsArrayItem getItemFromJsonReader(JsonReader reader) throws IOException {
 
         boolean isFirstPass=false;
         SpannableStringBuilder ssb = new SpannableStringBuilder();
         reader.beginObject(); // item object
         String key;
+        List<String> packageNames = null;
         while(reader.hasNext()) {
             key = reader.nextName();
             switch (key) {
@@ -78,14 +94,27 @@ public class TrafficStatsArrayItem extends SpannableString {
                 case "relativeSpans":
                     readNextSpan_setSpan(reader, ssb, new Span.TINY_SPAN_FACTORY());
                     break;
+                case "packageNames":
+                    packageNames = readPackageNames(reader);
+                    break;
                 default:
                     // throw exception
             }
         }
         reader.endObject(); // end item object
 
-        TrafficStatsArrayItem item = new TrafficStatsArrayItem(ssb, isFirstPass);
+        TrafficStatsArrayItem item = new TrafficStatsArrayItem(ssb, packageNames, isFirstPass);
         return item;
+    }
+
+    private static List<String> readPackageNames(JsonReader reader) throws IOException {
+        reader.beginArray();
+        List<String> packageNames = new ArrayList<>();
+        while (reader.hasNext()) {
+            packageNames.add(reader.nextString());
+        }
+        reader.endArray();
+        return packageNames;
     }
 
     private static void readNextSpan_setSpan(JsonReader reader, SpannableStringBuilder ssb,
@@ -100,5 +129,9 @@ public class TrafficStatsArrayItem extends SpannableString {
             ssb.setSpan(spanFactory.getInstance(), spanStart, spanEnd, 0);
         }
         reader.endArray();
+    }
+
+    public List<String> getPackageNames() {
+        return this.packageNames;
     }
 }

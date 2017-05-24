@@ -23,10 +23,10 @@ import com.datausagenotifier.util.Const;
 import org.json.JSONException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -97,10 +97,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void setTextSSBfromNotification(Intent intent) {
         if (!intent.getAction().equals(Const.ACTION_UPDATE)) return;
+
         CharSequence ssb = intent.getCharSequenceExtra(Const.EXTRAS_SSB);
         if (ssb == null) return;
+
         Boolean isFirstPass = intent.getBooleanExtra(Const.EXTRAS_ISFIRSTPASS, false);
-        TrafficStatsArrayItem item = new TrafficStatsArrayItem(ssb, isFirstPass);
+
+        List<String> packageNames = intent.getStringArrayListExtra(Const.EXTRAS_PACKAGE_NAMES);
+
+        TrafficStatsArrayItem item = new TrafficStatsArrayItem(ssb, packageNames, isFirstPass);
         this.statsArrayAdapter.insert(item, 0);
     }
 

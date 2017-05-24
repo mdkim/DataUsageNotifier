@@ -10,14 +10,15 @@ public class TrafficStatsUid {
 
     private Context ctx; // for Formatter
 
-    String serviceClass;
+    String serviceClass, packageName;
     int uid;
     long rxBytes;
     long txBytes;
 
-    public TrafficStatsUid(Context ctx, String serviceClass, int uid) {
+    public TrafficStatsUid(Context ctx, String serviceClass, String packageName, int uid) {
         this.ctx = ctx;
         this.serviceClass = serviceClass;
+        this.packageName = packageName;
         this.uid = uid;
     }
 
@@ -28,14 +29,21 @@ public class TrafficStatsUid {
         this.txBytes = txBytes;
     }
 
+    public String getPackageName() {
+        return packageName;
+    }
+
     public void appendStatsUidTo(SpannableStringBuilder ssb) {
         appendBytes(ssb, "Received", this.rxBytes);
         appendBytes(ssb, "Sent", this.txBytes);
         String[] service_class= parseServiceName(this.serviceClass);
-        String service_class_f = " (" + service_class[1] + ")";
+        String packageName_f = " (" + packageName + ")";
         ssb.append(service_class[0], Span.BOLD_SPAN(), 0)
-                .append(service_class_f, Span.TINY_SPAN(), 0)
-                .append("\n");
+                //.append(service_class[1], Span.TINY_SPAN(), 0)
+                //.append("\n")
+                .append(packageName_f, Span.TINY_SPAN(), 0)
+                .append("\n")
+        ;
     }
 
     private void appendBytes(SpannableStringBuilder ssb, String text, long bytes) {
@@ -50,7 +58,7 @@ public class TrafficStatsUid {
         ssb.append(" ");
     }
 
-    // { serviceName, packageName }
+    // { serviceName, classPackage }
     private static String[] parseServiceName(String className) {
         int pos = className.lastIndexOf('.');
         if (pos < 0 || pos == className.length() - 1) {
@@ -58,8 +66,9 @@ public class TrafficStatsUid {
             return result;
         }
         String serviceName = className.substring(pos+1, className.length());
-        String packageName = className.substring(0, pos);
-        String[] result = { serviceName, packageName };
+        String classPackage = className.substring(0, pos);
+
+        String[] result = { serviceName, classPackage };
         return result;
     }
 }

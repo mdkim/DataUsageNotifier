@@ -132,6 +132,7 @@ public class DataUsageMonitorService extends IntentService {
             // refresh activity text
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra(Const.EXTRAS_SSB, ssb);
+            intent.putStringArrayListExtra(Const.EXTRAS_PACKAGE_NAMES, stats.getPackageNames());
             intent.putExtra(Const.EXTRAS_ISFIRSTPASS, stats.isFirstPass());
             intent.setAction(Const.ACTION_UPDATE);
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);

@@ -71,6 +71,15 @@ public class TrafficStatsUpdate {
         return this.noActivity;
     }
 
+    public ArrayList<String> getPackageNames() {
+        //this.statsUidList.stream().map(statsUid -> statsUid.getPackageName()).collect(Collectors.toList());
+        ArrayList<String> packageNames = new ArrayList<>();
+        for (TrafficStatsUid statsUid : this.statsUidList) {
+            packageNames.add(statsUid.getPackageName());
+        }
+        return packageNames;
+    }
+
     public SpannableStringBuilder formatSpannable(Context ctx) {
         if (this.noActivity) return formatSpannable_NoActivity();
 
