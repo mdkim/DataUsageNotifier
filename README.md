@@ -13,9 +13,9 @@ Notification and toasts with updated stats while service is running. Pressing th
 UPDATES:
 
 * 2017-05-21: Added feature to export logs as html; created launcher icon; other icons
-
+* 2017-05-24: Added application icons of logged services in margin; added support for icons in cache serialization
 ---
 
 <br>
 
-![Screenshot](http://i.imgur.com/B3ZV10v.jpg "Notification (expanded)") ![Screenshot](http://i.imgur.com/yelOU0q.jpg "Log viewer")
+![Log viewer screenshot](http://i.imgur.com/PUxzqEx.png "Log viewer") ![Notification screenshot](http://i.imgur.com/tebSppP.png "Notification (expanded)")
