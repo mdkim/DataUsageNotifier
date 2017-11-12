@@ -76,7 +76,8 @@ public class TrafficStatsArrayAdapter extends ArrayAdapter<TrafficStatsArrayItem
                 res = ctx.getPackageManager().getResourcesForApplication(appInfo);
             } catch (PackageManager.NameNotFoundException e) {
                 Log.e(TAG, "packageName '" + packageName + "' not found", e);
-                throw new RuntimeException(e);
+                //throw new RuntimeException(e);
+                continue; // when app has been uninstalled
             }
 
             Drawable d;
