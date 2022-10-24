@@ -18,4 +18,4 @@ UPDATES:
 
 <br>
 
-![Log viewer screenshot](http://i.imgur.com/PUxzqEx.png "Log viewer") ![Notification screenshot](http://i.imgur.com/tebSppP.png "Notification (expanded)")
+![Log viewer screenshot](https://i.imgur.com/PUxzqEx.png "Log viewer") ![Notification screenshot](https://i.imgur.com/tebSppP.png "Notification (expanded)")
